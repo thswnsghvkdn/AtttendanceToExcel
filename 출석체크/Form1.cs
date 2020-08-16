@@ -30,61 +30,73 @@ namespace WindowsFormsApp3
 
         private void button2_Click(object sender, EventArgs e)
         {
-            try
+
+            if (textBox4.Text == "")
             {
-                String filepath = "C:\\Users\\사용자\\Desktop\\aa.xlsx";
-                if (filepath != null)
+                MessageBox.Show("몇열인지 입력");
+            }
+            else
+            {
+                int col = Convert.ToInt32(textBox4.Text);
+
+                try
                 {
-                    ap = new Excel.Application(); // Excel 워크시트 가져오기 
-                    wb = ap.Workbooks.Open(filepath, 0, true, 5, "", "", true, Excel.XlPlatform.xlWindows, "\t", false, false, 0, true, 1, 0);
-                    ws = wb.Worksheets.get_Item("sheet1") as Excel.Worksheet; // 1번째 워크시트 
-              
+                    String filepath = "C:\\Users\\na\\Documents\\카카오톡 받은 파일\\대학부 재적정리 파일(교육국 양식)_2020_8월_2주차.xlsx";
 
-                    Excel.Range rg = ws.UsedRange; // 사용중인 엑셀 범위
-                    
-                    // 출석명단의 이름을 토큰 분리 
-                    char[] sep = { '\n', '\t', ' ' };
-                    string[] t_name = textBox2.Text.Split(sep, StringSplitOptions.RemoveEmptyEntries);
-
-                    int loading; // 로딩 %
-                    for (int i = 2; i < rg.Rows.Count; i++) // i는 이름이 있는 행번호
+                    if (filepath != null)
                     {
-                        loading = 100 * i / rg.Rows.Count; // 100%로 표시하기 위해 설정
-                        textBox3.Text = loading.ToString() + "% 진행 중.."; // 두번째 창에 로딩 진행상황 표시
+                        ap = new Excel.Application(); // Excel 워크시트 가져오기 
+                        wb = ap.Workbooks.Open(filepath, 0, true, 5, "", "", true, Excel.XlPlatform.xlWindows, "\t", false, false, 0, true, 1, 0);
+                        ws = wb.Worksheets.get_Item("20년 8월") as Excel.Worksheet; // 1번째 워크시트 
 
-                        if (ws.Cells[i] == null) continue; // 해당 행에 이름이 없으면 스킵
-                    
-                        for (int j = 0; j < t_name.Length; j++) // j는 출석명단에서 가져온 이름번호
+
+                        Excel.Range rg = ws.UsedRange; // 사용중인 엑셀 범위
+
+                        // 출석명단의 이름을 토큰 분리 
+                        char[] sep = { '\n', '\t', ' ' };
+                        string[] t_name = textBox2.Text.Split(sep, StringSplitOptions.RemoveEmptyEntries);
+
+                        int loading; // 로딩 %
+                        for (int i = 5; i < rg.Rows.Count; i++) // i는 이름이 있는 행번호
                         {
-                            if(t_name[j].Length == 1) // 이름이 외자일 경우에는 다른 이름에 출석이 체크될 수 있으니 2글자인 이름에만 출석을 진행한다.
+                            if (i > 150) break;
+                            loading = 100 * i / rg.Rows.Count; // 100%로 표시하기 위해 설정
+                            textBox3.Text = loading.ToString() + "% 진행 중.."; // 두번째 창에 로딩 진행상황 표시
+                            if (ws.Cells[i] == null) continue; // 해당 행에 이름이 없으면 스킵
+
+                            for (int j = 0; j < t_name.Length; j++) // j는 출석명단에서 가져온 이름번호
                             {
-                                if(ws.Cells[i, 1].Value.ToString().Contains(t_name[j]) && ws.Cells[i, 1].Value.ToString().Length == 2)
+                                if (t_name[j].Length == 1) // 이름이 외자일 경우에는 다른 이름에 출석이 체크될 수 있으니 2글자인 이름에만 출석을 진행한다.
                                 {
-                                    ws.Cells[i, 3] = 1;
+                                    if (ws.Cells[i, 5].Value.ToString().Contains(t_name[j]) && ws.Cells[i, 1].Value.ToString().Length == 2)
+                                    {
+                                        ws.Cells[i, col] = 1;
+                                        break;
+                                    }
+
+                                }
+                                else if (ws.Cells[i, 5].Value.ToString().Contains(t_name[j])) // 엑셀에 있는 이름에 출석명단이름이 포함되어 있으면 출석
+                                {
+                                    ws.Cells[i, col] = 1;
                                     break;
                                 }
-
-                            }
-                            else if (ws.Cells[i,1].Value.ToString().Contains(t_name[j])) // 엑셀에 있는 이름에 출석명단이름이 포함되어 있으면 출석
-                            {
-                                ws.Cells[i , 3] = 1;
-                                break;
                             }
                         }
+                        textBox3.Text = "출석체크 완료!";
+                        wb.SaveCopyAs(filepath);
+                        /*메모리 할당 해제*/
+                        DeleteObject(ws);
+                        DeleteObject(wb);
+                        ap.Quit();
+                        DeleteObject(ap);
+                        /*메모리 할당 해제*/
                     }
-                    textBox3.Text = "출석체크 완료!";
-
-                    /*메모리 할당 해제*/
-                    DeleteObject(ws);
-                    DeleteObject(wb);
-                    ap.Quit();
-                    DeleteObject(ap);
-                    /*메모리 할당 해제*/
                 }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("에러" + ex.Message, "에러!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                catch (Exception ex)
+                {
+                    MessageBox.Show("에러" + ex.Message, "에러!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
             }
         }
 
@@ -106,7 +118,10 @@ namespace WindowsFormsApp3
             }
         }
 
+        private void textBox4_TextChanged(object sender, EventArgs e)
+        {
 
+        }
     }
 
 }

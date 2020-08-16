@@ -32,6 +32,8 @@
             this.textBox2 = new System.Windows.Forms.TextBox();
             this.textBox3 = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
+            this.textBox4 = new System.Windows.Forms.TextBox();
+            this.label2 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // button2
@@ -71,9 +73,30 @@
             this.label1.TabIndex = 4;
             this.label1.Text = "출석명단 (띄어쓰기, 동명이인은 성까지 쓰기!)";
             // 
+            // textBox4
+            // 
+            this.textBox4.Location = new System.Drawing.Point(314, 110);
+            this.textBox4.Multiline = true;
+            this.textBox4.Name = "textBox4";
+            this.textBox4.Size = new System.Drawing.Size(179, 33);
+            this.textBox4.TabIndex = 6;
+            this.textBox4.TextChanged += new System.EventHandler(this.textBox4_TextChanged);
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Font = new System.Drawing.Font("굴림", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.label2.Location = new System.Drawing.Point(310, 70);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(296, 24);
+            this.label2.TabIndex = 7;
+            this.label2.Text = "출석체크 열(A : 1 , b: 2 ..)";
+            // 
             // Form1
             // 
             this.ClientSize = new System.Drawing.Size(572, 501);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.textBox4);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.textBox3);
             this.Controls.Add(this.textBox2);
@@ -94,6 +117,8 @@
         private System.Windows.Forms.TextBox textBox3;
         private System.Windows.Forms.Label label1;
         internal System.Windows.Forms.Button button2;
+        private System.Windows.Forms.TextBox textBox4;
+        private System.Windows.Forms.Label label2;
     }
 }
 
