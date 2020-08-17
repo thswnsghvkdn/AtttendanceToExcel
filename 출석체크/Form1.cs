@@ -21,33 +21,59 @@ namespace WindowsFormsApp3
         Excel.Application ap = null;
         Excel.Workbook wb = null;
         Excel.Worksheet ws = null;
+   
+       
 
         public Form1()
         {
             InitializeComponent();
+
         }
 
+        private bool Ready() // 출석 설정 체크
+        {
+            if (radioButton1.Checked == false && radioButton2.Checked == false)
+            {
+                MessageBox.Show("출석 종류를 입력하세요(1,2부 , 대학부)");
+                return false;
+            }
+            if (radioButton1.Checked == true && radioButton2.Checked == true)
+            {
+                MessageBox.Show("출석 타입이 두개가 선택되었습니다(1,2부 , 대학부)");
+                return false;
+            }
+
+
+
+            return true;
+        }
 
         private void button2_Click(object sender, EventArgs e)
         {
 
-            if (textBox4.Text == "")
+            
+            if(Ready()) // 날짜와 예배 종류가 선택되면 true
             {
-                MessageBox.Show("몇열인지 입력");
-            }
-            else
-            {
-                int col = Convert.ToInt32(textBox4.Text);
+                DateTime dt = dateTimePicker1.Value;
+                // int col = Convert.ToInt32(textBox4.Text);
+                int week = dt.Day / 7; // 몇주차
+                int col = 16 + ( week * 2 ) ; // 출석체크 할 열
+                if (radioButton2.Checked == true) // 출석예배 구분 
+                    col += 1;
+                week += 1;
 
                 try
                 {
-                    String filepath = "C:\\Users\\na\\Documents\\카카오톡 받은 파일\\대학부 재적정리 파일(교육국 양식)_2020_8월_2주차.xlsx";
+                    String filepath = "C:\\Users\\사용자\\Desktop\\대학부 재적정리 파일(교육국 양식)_" + dt.Year.ToString() + "_" + dt.Month.ToString() + "월.xlsx";
 
                     if (filepath != null)
                     {
                         ap = new Excel.Application(); // Excel 워크시트 가져오기 
                         wb = ap.Workbooks.Open(filepath, 0, true, 5, "", "", true, Excel.XlPlatform.xlWindows, "\t", false, false, 0, true, 1, 0);
-                        ws = wb.Worksheets.get_Item("20년 8월") as Excel.Worksheet; // 1번째 워크시트 
+                        int year = dt.Year % 2000;
+                        string sheet = year.ToString() + "년 " + dt.Month.ToString() + "월";
+
+                        ws = wb.Worksheets.get_Item(sheet) as Excel.Worksheet; // xx년 xx월 sheet접근
 
 
                         Excel.Range rg = ws.UsedRange; // 사용중인 엑셀 범위
@@ -62,7 +88,7 @@ namespace WindowsFormsApp3
                             if (i > 150) break;
                             loading = 100 * i / rg.Rows.Count; // 100%로 표시하기 위해 설정
                             textBox3.Text = loading.ToString() + "% 진행 중.."; // 두번째 창에 로딩 진행상황 표시
-                            if (ws.Cells[i] == null) continue; // 해당 행에 이름이 없으면 스킵
+                            if (ws.Cells[i , 5].Value.ToString() == "") continue; // 해당 행에 이름이 없으면 스킵
 
                             for (int j = 0; j < t_name.Length; j++) // j는 출석명단에서 가져온 이름번호
                             {
@@ -83,7 +109,10 @@ namespace WindowsFormsApp3
                             }
                         }
                         textBox3.Text = "출석체크 완료!";
-                        wb.SaveCopyAs(filepath);
+
+                        wb.SaveCopyAs(filepath); // 본 파일 저장
+                        filepath = "C:\\Users\\사용자\\Desktop\\대학부 재적정리 파일(교육국 양식)_" + dt.Year.ToString() + "_" + dt.Month.ToString() + "월_" + week.ToString() +"주차.xlsx";
+                        wb.SaveCopyAs(filepath); // 백업파일로 저장
                         /*메모리 할당 해제*/
                         DeleteObject(ws);
                         DeleteObject(wb);
@@ -118,10 +147,7 @@ namespace WindowsFormsApp3
             }
         }
 
-        private void textBox4_TextChanged(object sender, EventArgs e)
-        {
 
-        }
     }
 
 }
