@@ -47,6 +47,7 @@ namespace WindowsFormsApp3
 
             return true;
         }
+        int index;
 
         private void button2_Click(object sender, EventArgs e)
         {
@@ -83,20 +84,26 @@ namespace WindowsFormsApp3
                         string[] t_name = textBox2.Text.Split(sep, StringSplitOptions.RemoveEmptyEntries);
 
                         int loading; // 로딩 %
-                        for (int i = 5; i < rg.Rows.Count; i++) // i는 이름이 있는 행번호
-                        {
-                            if (i > 150) break;
-                            loading = 100 * i / rg.Rows.Count; // 100%로 표시하기 위해 설정
-                            textBox3.Text = loading.ToString() + "% 진행 중.."; // 두번째 창에 로딩 진행상황 표시
-                            if (ws.Cells[i , 5].Value.ToString() == "") continue; // 해당 행에 이름이 없으면 스킵
+                        int same;
+                        string[] s_name = new string[10];
 
-                            for (int j = 0; j < t_name.Length; j++) // j는 출석명단에서 가져온 이름번호
+                        for (int j = 0; j < t_name.Length; j++) // j는 출석명단에서 가져온 이름번호
+                        {
+                            same = 0;
+                            for (int i = 5; i < rg.Rows.Count; i++) // i는 이름이 있는 행번호
                             {
+                                if (i > 150) break;
+                                loading = 100 * i / rg.Rows.Count; // 100%로 표시하기 위해 설정
+                                textBox3.Text = loading.ToString() + "% 진행 중.."; // 두번째 창에 로딩 진행상황 표시
+                                if (ws.Cells[i, 5].Value.ToString() == "") continue; // 해당 행에 이름이 없으면 스킵
+
+
                                 if (t_name[j].Length == 1) // 이름이 외자일 경우에는 다른 이름에 출석이 체크될 수 있으니 2글자인 이름에만 출석을 진행한다.
                                 {
                                     if (ws.Cells[i, 5].Value.ToString().Contains(t_name[j]) && ws.Cells[i, 1].Value.ToString().Length == 2)
                                     {
                                         ws.Cells[i, col] = 1;
+                                        s_name[same++] = t_name[j] + ' ' + ws.Cells[i, 2] ;
                                         break;
                                     }
 
@@ -104,11 +111,33 @@ namespace WindowsFormsApp3
                                 else if (ws.Cells[i, 5].Value.ToString().Contains(t_name[j])) // 엑셀에 있는 이름에 출석명단이름이 포함되어 있으면 출석
                                 {
                                     ws.Cells[i, col] = 1;
+                                    s_name[same++] = t_name[j]+ ' ' + ws.Cells[i, 2];
                                     break;
                                 }
                             }
+                            if(same > 0)
+                            {
+                                message sameEvent = new message();
+                                s_name[same] = t_name[j];
+                                sameEvent.GetStr = s_name;
+                                sameEvent.ChildEvent += getIndex;
+                                sameEvent.ShowDialog();
+
+                                for(int i = 0; i < s_name.Length - 1; i++)
+                                {
+                                    if (i == index)
+                                    {
+                                        ws.Cells[i, col] = 1;
+                                    }
+                                    else
+                                        ws.Cells[i, col] = "";
+                                }
+
+                            }
+
                         }
-                        textBox3.Text = "출석체크 완료!";
+
+                        textBox3.Text = "출석체크 완료!!!";
 
                         wb.SaveCopyAs(filepath); // 본 파일 저장
                         filepath = "C:\\Users\\사용자\\Desktop\\대학부 재적정리 파일(교육국 양식)_" + dt.Year.ToString() + "_" + dt.Month.ToString() + "월_" + week.ToString() +"주차.xlsx";
@@ -129,6 +158,11 @@ namespace WindowsFormsApp3
             }
         }
 
+        
+        public void getIndex(int num)
+        {
+            index = num;
+        }
         private void DeleteObject(object obj)
         {   // 메모리 해제를 위한 사용자 정의 함수
             try
