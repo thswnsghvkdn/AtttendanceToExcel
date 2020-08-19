@@ -71,9 +71,9 @@
             this.label1.Font = new System.Drawing.Font("굴림", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
             this.label1.Location = new System.Drawing.Point(20, 27);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(506, 24);
+            this.label1.Size = new System.Drawing.Size(306, 24);
             this.label1.TabIndex = 4;
-            this.label1.Text = "출석명단 (띄어쓰기, 동명이인은 성까지 쓰기!)";
+            this.label1.Text = "출석명단 (이름간 띄어쓰기)";
             // 
             // label2
             // 

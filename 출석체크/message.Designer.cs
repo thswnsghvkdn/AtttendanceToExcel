@@ -37,7 +37,7 @@
             // 
             this.label.AutoSize = true;
             this.label.Font = new System.Drawing.Font("굴림", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.label.Location = new System.Drawing.Point(37, 26);
+            this.label.Location = new System.Drawing.Point(12, 24);
             this.label.Name = "label";
             this.label.Size = new System.Drawing.Size(44, 12);
             this.label.TabIndex = 0;
@@ -49,7 +49,7 @@
             this.comboBox1.FormattingEnabled = true;
             this.comboBox1.Location = new System.Drawing.Point(39, 58);
             this.comboBox1.Name = "comboBox1";
-            this.comboBox1.Size = new System.Drawing.Size(145, 182);
+            this.comboBox1.Size = new System.Drawing.Size(220, 194);
             this.comboBox1.TabIndex = 1;
             // 
             // button1
@@ -66,7 +66,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(291, 340);
+            this.ClientSize = new System.Drawing.Size(463, 337);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.comboBox1);
             this.Controls.Add(this.label);
