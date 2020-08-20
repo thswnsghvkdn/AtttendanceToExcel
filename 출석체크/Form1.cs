@@ -23,6 +23,16 @@ namespace WindowsFormsApp3
         Excel.Worksheet ws = null;
         public int[] index_ar = new int[10]; // 동명이인 대비 동명이인 행 번호를 저장할 배열
         public int index; // 자식 폼에서 넘겨받을 동명이인 중 선택한 사람의 인덱스번호
+        public struct Person
+        {
+            public string name, univ, region;
+            public int row;
+            public int check;
+        }
+        public Person[] stu;
+        string filepath;
+        DateTime dt;
+
 
         public Form1()
         {
@@ -55,14 +65,73 @@ namespace WindowsFormsApp3
             return true;
         }
 
+        private void load_name() // 엑셀파일에서 미리 이름 구조체에 저장하여 엑셀파일 접근을 최소화
+        {
+            textBox3.Text = "엑셀파일을 불러옵니다.";
+            dt = dateTimePicker1.Value;
+            // int col = Convert.ToInt32(textBox4.Text);
+            int week = dt.Day / 7; // 몇주차
+            int col = 16 + (week * 2); // 출석체크 할 열
+            int loading;
+            try
+            {
+                // 파일 이름은 각 월을 기준으로 설정한다.
+                filepath = "C:\\Users\\사용자\\Desktop\\대학부 재적정리 파일(교육국 양식)_" + dt.Year.ToString() + "_" + dt.Month.ToString() + "월.xlsx";
+
+                if (filepath != null)
+                {
+                    ap = new Excel.Application(); // Excel 워크시트 가져오기 
+                    wb = ap.Workbooks.Open(filepath, 0, true, 5, "", "", true, Excel.XlPlatform.xlWindows, "\t", false, false, 0, true, 1, 0);
+                    int year = dt.Year % 2000;
+                    string sheet = year.ToString() + "년 " + dt.Month.ToString() + "월";
+
+                    ws = wb.Worksheets.get_Item(sheet) as Excel.Worksheet; // xx년 xx월 sheet접근
+                    Excel.Range rg = ws.UsedRange; // 사용중인 엑셀 범위
+
+                 
+
+                    string univ; // 대학
+                    string region; // 사는 지역
+                    stu = new Person[rg.Rows.Count]; // 저장할 출석명단 구조체
+
+                    for(int i = 5; i < rg.Rows.Count; i++)
+                    {
+                        if (ws.Cells[i, 5].Value2 == null)
+                        {
+                            stu[i].row = -1; // 마지막 행 구분
+                            break;
+                        }
+                        stu[i].check = 0; // 출석체크 여부
+                        stu[i].name = ws.Cells[i, 5].Value2.ToString();
+                        stu[i].row = i;
+                        stu[i].univ = null;
+                        stu[i].region = null;
+                        if (ws.Cells[i, 6].Value2 != null) stu[i].univ = ws.Cells[i, 6].Value2.ToString(); // 대학이름 혹은 지역이 기재 안되어 있으면 스킵
+                        if (ws.Cells[i, 2].Value2 != null) stu[i].region = ws.Cells[i, 2].Value2.ToString();
+                        loading = 100 * i / rg.Rows.Count;
+                        textBox3.Text = "출석명단을 가져오는 중입니다. " + loading.ToString() +"%..";
+
+                    }
+               
+
+
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("에러" + ex.Message, "에러!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         private void button2_Click(object sender, EventArgs e)
         {
 
             
             if(Ready()) // 날짜와 예배 종류가 선택되면 true
             {
+                load_name();
                 textBox3.Text = "준비중..";
-                DateTime dt = dateTimePicker1.Value;
+                dt = dateTimePicker1.Value;
                 // int col = Convert.ToInt32(textBox4.Text);
                 int week = dt.Day / 7; // 몇주차
                 int col = 16 + ( week * 2 ) ; // 출석체크 할 열
@@ -70,25 +139,18 @@ namespace WindowsFormsApp3
                     col += 1;
                 week += 1;
 
+                bool already_at;
                 try
                 {
-                    // 파일 이름은 각 월을 기준으로 설정한다.
-                    String filepath = "C:\\Users\\사용자\\Desktop\\대학부 재적정리 파일(교육국 양식)_" + dt.Year.ToString() + "_" + dt.Month.ToString() + "월.xlsx";
-
+                    
+                   
                     if (filepath != null)
-                    {
-                        ap = new Excel.Application(); // Excel 워크시트 가져오기 
-                        wb = ap.Workbooks.Open(filepath, 0, true, 5, "", "", true, Excel.XlPlatform.xlWindows, "\t", false, false, 0, true, 1, 0);
+                    {                    
                         int year = dt.Year % 2000;
                         string sheet = year.ToString() + "년 " + dt.Month.ToString() + "월";
 
-                        ws = wb.Worksheets.get_Item(sheet) as Excel.Worksheet; // xx년 xx월 sheet접근
-
-
-                        Excel.Range rg = ws.UsedRange; // 사용중인 엑셀 범위
-
                         // 출석명단의 이름을 토큰 분리 
-                        char[] sep = { '\n', '\t', ' ' };
+                        char[] sep = { '\n', '\t', ' ', '\r' };
                         string[] t_name = textBox2.Text.Split(sep, StringSplitOptions.RemoveEmptyEntries);
 
                         int loading; // 로딩 게이지
@@ -100,9 +162,9 @@ namespace WindowsFormsApp3
                         string region; // 사는 지역
                         for (int j = 0; j < t_name.Length; j++) // j는 출석명단에서 가져온 이름번호
                         {
-                            univ = "";
-                            region = "";
-
+                            univ = "미기입";
+                            region = "미기입";
+                            already_at = false;
                             s_name[0] = null;
                             if (t_name[j].Length > 3) // 동명이인 설명이 있는 경우
                             {
@@ -121,70 +183,86 @@ namespace WindowsFormsApp3
                             loading = 100 * j / t_name.Length; // 100%로 표시하기 위해 설정
                             textBox3.Text = loading.ToString() + "% 진행 중.."; // 두번째 창에 로딩 진행상황 표시
 
-                            for (int i = 5; i < rg.Rows.Count; i++) // i는 이름이 있는 행번호
+                            for (int i = 5; i < stu.Length; i++) // i는 이름이 있는 행번호
                             {
-                                
-                                
-                                if (ws.Cells[i, 5].Value2 == null)  break; // 해당 행에 이름이 없으면 스킵
+
+                               
+                                if (stu[i].row == -1)  break; // 해당 행에 이름이 없으면 스킵
 
                                 
                                 if (t_name[j].Length == 1) // 이름이 외자일 경우에는 다른 이름에 출석이 체크될 수 있으니 2글자인 이름에만 출석을 진행한다.
                                 {
-                                    if (ws.Cells[i, 5].Value.ToString().Contains(t_name[j]) && ws.Cells[i, 5].Value2.ToString().Length == 2)
+                                    if (stu[i].name.Contains(t_name[j]) && stu[i].name.Length == 2)
                                     {
+                                        if (stu[i].check == 1)
+                                        {
+                                            already_at = true;
+                                            continue;
+                                        } // 해당이름이 이미 체크되어 있으면 넘어간다. 
+
                                         ws.Cells[i, col] = 1;
                                         index_ar[same] = i; // 동명이인을 대비해 인덱스를 저장해놓습니다.
-                                        if (ws.Cells[i, 5].Value2 != null) univ = ws.Cells[i, 5].Value.ToString(); // 대학이름 혹은 지역이 기재 안되어 있으면 스킵
-                                        if (ws.Cells[i, 2].Value2 != null) region = ws.Cells[i, 2].Value.ToString();
+                                        if (stu[i].univ != null) univ = stu[i].univ; // 대학이름 혹은 지역이 기재 안되어 있으면 스킵
+                                        if (stu[i].region != null) region = stu[i].region;
+                                        stu[i].check = 1;
 
-                                        s_name[same++] = univ + ' ' + ws.Cells[i, 5].Value.ToString() + ' ' +region;
+                                        s_name[same++] = univ + ' ' + stu[i].name + ' ' +region;
 
                                         //break;
                                     }
 
                                 }
 
-                                else if (ws.Cells[i, 5].Value.ToString().Contains(t_name[j])) // 엑셀에 있는 이름에 출석명단이름이 포함되어 있으면 출석
+                                else if (stu[i].name.Contains(t_name[j])) // 엑셀에 있는 이름에 출석명단이름이 포함되어 있으면 출석
                                 {
+                                    if (stu[i].check == 1)
+                                    {
+                                        already_at = true;
+                                        continue;
+                                    } // 해당이름이 이미 체크되어 있으면 넘어간다
+
                                     ws.Cells[i, col] = 1;
                                     index_ar[same] = i;
-                                    if (ws.Cells[i, 6].Value2 != null) univ = ws.Cells[i, 6].Value.ToString();
-                                    if (ws.Cells[i, 2].Value2 != null) region = ws.Cells[i, 2].Value.ToString();
+                                    if (stu[i].univ != null) univ = stu[i].univ; // 대학이름 혹은 지역이 기재 안되어 있으면 스킵
+                                    if (stu[i].region != null) region = stu[i].region;
 
-                                    s_name[same++] = univ + ' ' + ws.Cells[i, 5].Value.ToString() + ' ' + region;
+                                    stu[i].check = 1;
+                                    s_name[same++] = univ + ' ' + stu[i].name + ' ' + region;
 
                                     // break;
                                 }
                             }
-                            if(same > 2) // 동명이인이 두명이상 일 때
+                            if (same > 2) // 동명이인이 두명이상 일 때
                             {
                                 string[] name = new string[same]; // 실제로 할당 된 이름만 복사
-                                if(s_name[0] == null)
+                                if (s_name[0] == null)
                                     s_name[0] = t_name[j]; // 동명이인 이름을 마지막 인덱스에 저장
 
                                 for (int i = 0; i < same; i++)
                                     name[i] = s_name[i];
-                                
+
                                 message sameEvent = new message();
                                 sameEvent.GetStr = name; // 폼간 데이터를 전달하는 방법 1
                                 //sameEvent.ChildEvent += getIndex; // 방법 2
                                 sameEvent.fm = this; // 방법 3
                                 sameEvent.ShowDialog();
 
-                                
-                                for(int i = 1; i < name.Length; i++) // 자식 폼에서 체크된 인덱스를 가져와 해당 이름을 제외한 나머지 이름은 출석 미처리
+
+                                for (int i = 1; i < name.Length; i++) // 자식 폼에서 체크된 인덱스를 가져와 해당 이름을 제외한 나머지 이름은 출석 미처리
                                 {
                                     if (i == index)
                                         ws.Cells[index_ar[i], col] = 1;
-                                
-                                    else
-                                        ws.Cells[index_ar[i], col] = "";
 
+                                    else
+                                    {
+                                        ws.Cells[index_ar[i], col] = "";
+                                        stu[index_ar[i]].check = 0;
+                                    }
                                 }
-                                
+
 
                             }
-                            else if(same == 1) // 한번도 출석처리 되지 않은 이름
+                            else if (same == 1 && already_at == false) // 한번도 출석처리 되지 않은 이름
                             {
                                 MessageBox.Show(t_name[j] + " 출석처리 되지 않았습니다. \n이름을 고쳐 다시 출석체크를 눌러주세요(띄어쓰기, 오타, 미기입)");
                             }
