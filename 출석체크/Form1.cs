@@ -23,11 +23,13 @@ namespace WindowsFormsApp3
         Excel.Worksheet ws = null;
         public int[] index_ar = new int[10]; // 동명이인 대비 동명이인 행 번호를 저장할 배열
         public int index; // 자식 폼에서 넘겨받을 동명이인 중 선택한 사람의 인덱스번호
+        public string path = null;
         public struct Person
         {
             public string name, univ, region;
             public int row;
             public int check;
+            public string state; // 장결 , 군대 구분
         }
         public Person[] stu;
         string filepath;
@@ -67,7 +69,15 @@ namespace WindowsFormsApp3
 
         private void load_name() // 엑셀파일에서 미리 이름 구조체에 저장하여 엑셀파일 접근을 최소화
         {
-            textBox3.Text = "엑셀파일을 불러옵니다.";
+            System.IO.StreamReader file = new System.IO.StreamReader("path.txt");
+
+            while((path = file.ReadLine()) == null) 
+            {
+
+            }
+            file.Close();
+
+            textBox3.Text ="엑셀파일을 불러옵니다.";
             dt = dateTimePicker1.Value;
             // int col = Convert.ToInt32(textBox4.Text);
             int week = dt.Day / 7; // 몇주차
@@ -109,7 +119,7 @@ namespace WindowsFormsApp3
                         if (ws.Cells[i, 6].Value2 != null) stu[i].univ = ws.Cells[i, 6].Value2.ToString(); // 대학이름 혹은 지역이 기재 안되어 있으면 스킵
                         if (ws.Cells[i, 2].Value2 != null) stu[i].region = ws.Cells[i, 2].Value2.ToString();
                         loading = 100 * i / rg.Rows.Count;
-                        textBox3.Text = "출석명단을 가져오는 중입니다. " + loading.ToString() +"%..";
+                        textBox3.Text ="명단 로딩 " +loading.ToString() +"%..";
 
                     }
                
@@ -200,6 +210,8 @@ namespace WindowsFormsApp3
                                             continue;
                                         } // 해당이름이 이미 체크되어 있으면 넘어간다. 
 
+                                        if(ws.Cells[i,col].Value2 != null)
+                                        stu[i].state = ws.Cells[i, col].Value2.ToString(); // 장결 군입대 같은 상태를 저장해놓습니다.
                                         ws.Cells[i, col] = 1;
                                         index_ar[same] = i; // 동명이인을 대비해 인덱스를 저장해놓습니다.
                                         if (stu[i].univ != null) univ = stu[i].univ; // 대학이름 혹은 지역이 기재 안되어 있으면 스킵
@@ -220,6 +232,9 @@ namespace WindowsFormsApp3
                                         already_at = true;
                                         continue;
                                     } // 해당이름이 이미 체크되어 있으면 넘어간다
+                                    
+                                    if (ws.Cells[i, col].Value2 != null)
+                                        stu[i].state = ws.Cells[i, col].Value2.ToString(); // 장결 군입대 같은 상태를 저장해놓습니다.
 
                                     ws.Cells[i, col] = 1;
                                     index_ar[same] = i;
@@ -255,7 +270,7 @@ namespace WindowsFormsApp3
 
                                     else
                                     {
-                                        ws.Cells[index_ar[i], col] = "";
+                                        ws.Cells[index_ar[i], col] = stu[index_ar[i]].state; // 잘못체크된 동명이인셀에 이전 상태를 저장해 놓습니다.
                                         stu[index_ar[i]].check = 0;
                                     }
                                 }
@@ -271,11 +286,12 @@ namespace WindowsFormsApp3
 
                         textBox3.Text = "출석체크 완료";
 
-                        wb.Save();
+                        ap.DisplayAlerts = false;
+                       // wb.Save();
                         wb.SaveCopyAs(filepath); // 본 파일 저장
-                        filepath = "C:\\Users\\사용자\\Desktop\\대학부 재적정리 파일(교육국 양식)_" + dt.Year.ToString() + "_" + dt.Month.ToString() + "월_" + week.ToString() +"주차.xlsx";
+                        filepath = "C:\\Users\\사용자\\Desktop\\대학부 재적정리 파일(교육국 양식)_" + dt.Year.ToString() + "_" + dt.Month.ToString() + "월_" + week.ToString() + "주차.xlsx";
                         wb.SaveCopyAs(filepath); // 백업파일로 저장
-                       
+
                         /*메모리 할당 해제*/
                         DeleteObject(ws);
                         DeleteObject(wb);
