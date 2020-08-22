@@ -69,13 +69,13 @@ namespace WindowsFormsApp3
 
         private void load_name() // 엑셀파일에서 미리 이름 구조체에 저장하여 엑셀파일 접근을 최소화
         {
-            System.IO.StreamReader file = new System.IO.StreamReader("path.txt");
+           // System.IO.StreamReader file = new System.IO.StreamReader("path.txt");
 
-            while((path = file.ReadLine()) == null) 
-            {
+           // while((path = file.ReadLine()) == null) 
+           // {
 
-            }
-            file.Close();
+           // }
+           // file.Close();
 
             textBox3.Text ="엑셀파일을 불러옵니다.";
             dt = dateTimePicker1.Value;
@@ -86,7 +86,7 @@ namespace WindowsFormsApp3
             try
             {
                 // 파일 이름은 각 월을 기준으로 설정한다.
-                filepath = "C:\\Users\\사용자\\Desktop\\대학부 재적정리 파일(교육국 양식)_" + dt.Year.ToString() + "_" + dt.Month.ToString() + "월.xlsx";
+                filepath = "C:\\Users\\82107\\Desktop\\대학부 재적정리 파일(교육국 양식)_" + dt.Year.ToString() + "_" + dt.Month.ToString() + "월.xlsx";
 
                 if (filepath != null)
                 {
@@ -286,12 +286,17 @@ namespace WindowsFormsApp3
 
                         textBox3.Text = "출석체크 완료";
 
-                        ap.DisplayAlerts = false;
-                       // wb.Save();
-                        wb.SaveCopyAs(filepath); // 본 파일 저장
-                        filepath = "C:\\Users\\사용자\\Desktop\\대학부 재적정리 파일(교육국 양식)_" + dt.Year.ToString() + "_" + dt.Month.ToString() + "월_" + week.ToString() + "주차.xlsx";
-                        wb.SaveCopyAs(filepath); // 백업파일로 저장
-
+                        // 출석내용저장
+                        if (MessageBox.Show("이번주 출석 내용을 저장할까요?", "출석완료", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                        {
+                            
+                            ap.DisplayAlerts = false;
+                            // wb.Save();
+                            wb.SaveCopyAs(filepath); // 본 파일 저장
+                            filepath = "C:\\Users\\82107\\Desktop\\대학부 재적정리 파일(교육국 양식)_" + dt.Year.ToString() + "_" + dt.Month.ToString() + "월_" + week.ToString() + "주차.xlsx";
+                            wb.SaveCopyAs(filepath); // 백업파일로 저장
+                            MessageBox.Show("저장완료" );
+                        }
                         /*메모리 할당 해제*/
                         DeleteObject(ws);
                         DeleteObject(wb);
